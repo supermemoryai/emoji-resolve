@@ -1,24 +1,48 @@
 # emoji-resolve
 
+[![npm](https://img.shields.io/npm/v/emoji-resolve.svg)](https://www.npmjs.com/package/emoji-resolve)
+[![CI](https://github.com/supermemoryai/emoji-resolve/actions/workflows/ci.yml/badge.svg)](https://github.com/supermemoryai/emoji-resolve/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/emoji-resolve.svg)](./LICENSE)
+
 **Platform-agnostic emoji → shortcode resolver.**
 
 Built for the case where an LLM hands you *something* emoji-ish and you need a real reaction out the other side. Works with **Slack**, **Discord**, and anything that speaks shortcodes or unicode.
 
+```bash
+npm install emoji-resolve
+```
+
 ```ts
-import { toShortcode, toName, resolve } from "emoji-resolve"
+import {
+  resolve,
+  toShortcode,
+  toName,
+  registerCustom,
+} from "emoji-resolve"
 import { Slack } from "emoji-resolve/platforms/slack"
 import { Discord } from "emoji-resolve/platforms/discord"
 
-toShortcode("😂")        // ":joy:"
-toShortcode("laugh")     // ":joy:"
-toShortcode("thums up")  // ":+1:"   (typo-tolerant)
-toName("🎉")             // "tada"
+// Workspace custom emoji (once at bot startup)
+registerCustom({
+  shipit: "https://emoji.slack-edge.com/T…/shipit.png",
+  partyparrot: "https://emoji.slack-edge.com/T…/partyparrot.gif",
+  meow: "alias:partyparrot",
+})
 
-const hit = resolve("👍🏽")
-// { name: "+1", shortcode: ":+1::skin-tone-4:", emoji: "👍", score: 1, tone: "skin-tone-4" }
+// Or from Slack's API:
+// registerCustom(await client.emoji.list())
 
-Slack.reaction(hit!)     // "+1"  → reactions.add
-Discord.reaction(hit!)   // "👍"  → unicode reaction
+toShortcode("😂")           // ":joy:"
+toShortcode("laugh")        // ":joy:"
+toShortcode("thums up")     // ":+1:"      typo-tolerant
+toShortcode("ship it")      // ":shipit:"  workspace custom
+toName("🎉")                // "tada"
+
+const hit = resolve("party parrot")!
+// { name: "partyparrot", shortcode: ":partyparrot:", custom: true, … }
+
+Slack.reaction(hit)         // "partyparrot"  → reactions.add
+Discord.reaction(hit)       // "partyparrot"  (add id for name:id — see below)
 ```
 
 Zero runtime dependencies. Plain TypeScript functions — no framework required.
@@ -29,6 +53,64 @@ Zero runtime dependencies. Plain TypeScript functions — no framework required.
 
 ```bash
 npm install emoji-resolve
+# or
+pnpm add emoji-resolve
+# or
+yarn add emoji-resolve
+```
+
+Published on [npm](https://www.npmjs.com/package/emoji-resolve) · source on [GitHub](https://github.com/supermemoryai/emoji-resolve)
+
+---
+
+## Quick example (with custom emoji)
+
+A typical Slack bot startup + reaction flow:
+
+```ts
+import { WebClient } from "@slack/web-api"
+import { toName, registerCustom, resolve } from "emoji-resolve"
+import { Slack } from "emoji-resolve/platforms/slack"
+
+const client = new WebClient(process.env.SLACK_BOT_TOKEN)
+
+// 1. Load workspace emoji once
+const { emoji } = await client.emoji.list()
+registerCustom(emoji)
+
+// 2. LLM (or user) said something emoji-ish
+const input = "ship it" // or "🎉", "thums up", "party parrot", …
+
+// 3. React
+const name = toName(input) // "shipit" | "tada" | "+1" | …
+await client.reactions.add({
+  channel,
+  timestamp: messageTs,
+  name, // bare name — what reactions.add wants
+})
+
+// Full match when you need score / shortcode / custom url:
+const hit = resolve(input)
+if (hit) {
+  console.log(hit.shortcode, hit.score, hit.custom, hit.url)
+  // or: Slack.reaction(hit) / Slack.shortcode(hit)
+}
+```
+
+Discord custom emoji need a snowflake `id`:
+
+```ts
+import { registerCustom, resolve } from "emoji-resolve"
+import { Discord } from "emoji-resolve/platforms/discord"
+
+registerCustom([
+  { name: "partyparrot", id: "123456789012345678", animated: true },
+  { name: "shipit", id: "987654321098765432" },
+])
+
+const hit = resolve("party parrot")!
+Discord.reaction(hit)  // "partyparrot:123456789012345678"
+Discord.message(hit)   // "<a:partyparrot:123456789012345678>"
 ```
 
 ---
@@ -262,6 +344,19 @@ Aliases `EMOJI_TO_SLACK` / `SLACK_TO_EMOJI` still exist for older imports.
 
 ---
 
+## Development
+
+```bash
+git clone https://github.com/supermemoryai/emoji-resolve.git
+cd emoji-resolve
+npm ci
+npm test   # build + vitest
+```
+
+CI runs on every push and PR to `main` (Node 20 & 22).
+
+---
+
 ## License
 
-MIT
+MIT · [Supermemory](https://github.com/supermemoryai)
