@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.repos/
+npm-debug.log*
+.DS_Store
+*.tgz
+coverage/

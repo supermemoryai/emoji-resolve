@@ -1,0 +1,78 @@
+{
+  "name": "emoji-resolve",
+  "version": "2.0.0",
+  "description": "Platform-agnostic emoji → shortcode resolver. LLM-friendly fuzzy matching for Slack, Discord, and friends.",
+  "license": "MIT",
+  "author": "Supermemory",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./formatters": {
+      "types": "./dist/formatters.d.ts",
+      "import": "./dist/formatters.js",
+      "default": "./dist/formatters.js"
+    },
+    "./data": {
+      "types": "./dist/data.d.ts",
+      "import": "./dist/data.js",
+      "default": "./dist/data.js"
+    },
+    "./platforms": {
+      "types": "./dist/platforms/index.d.ts",
+      "import": "./dist/platforms/index.js",
+      "default": "./dist/platforms/index.js"
+    },
+    "./platforms/slack": {
+      "types": "./dist/platforms/slack.d.ts",
+      "import": "./dist/platforms/slack.js",
+      "default": "./dist/platforms/slack.js"
+    },
+    "./platforms/discord": {
+      "types": "./dist/platforms/discord.d.ts",
+      "import": "./dist/platforms/discord.js",
+      "default": "./dist/platforms/discord.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "emoji",
+    "slack",
+    "discord",
+    "shortcode",
+    "reaction",
+    "llm",
+    "fuzzy"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/supermemoryai/emoji-resolve.git"
+  },
+  "bugs": {
+    "url": "https://github.com/supermemoryai/emoji-resolve/issues"
+  },
+  "homepage": "https://github.com/supermemoryai/emoji-resolve#readme",
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
