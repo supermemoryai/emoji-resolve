@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: "peak-ubuntu-24.04-4"
     strategy:
       matrix:
         node-version: [20, 22]
